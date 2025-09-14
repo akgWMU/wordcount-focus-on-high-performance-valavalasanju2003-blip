@@ -62,6 +62,8 @@ g++ -std=c++17 -pthread -O3 wordcount_multithreaded.cpp -o wordcount_mt
 - **Word counts** are printed in non-increasing order.
 - **Histogram** of the top 50 words is generated (Python versions).
 
+**Example Histogram Output:**  
+![WordCount Histogram](images/output_example.png)
 ---
 
 ## 📝 Notes
