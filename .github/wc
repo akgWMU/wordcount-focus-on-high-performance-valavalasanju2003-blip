@@ -1,0 +1,68 @@
+from collections import Counter
+import matplotlib.pyplot as plt
+import time
+import csv
+
+def process_csv(filename):
+    """Read CSV file and yield text lines as strings."""
+    with open(filename, "r", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            yield " ".join(row)  # join cells into one string line
+
+def process_txt(filename, buffer_size):
+    """Read TXT file with buffering and yield lines."""
+    with open(filename, "r", encoding="utf-8", buffering=buffer_size) as f:
+        for line in f:
+            yield line
+
+def word_count_optimized(file_list, buffer_size=1024*1024, top_n=50):
+    """
+    Count words across multiple TXT or CSV files using efficient buffered streaming.
+    Returns sorted list of (word, count).
+    """
+    counts = Counter()
+    start = time.time()
+
+    for filename in file_list:
+        if filename.endswith(".csv"):
+            line_generator = process_csv(filename)
+        else:  # assume .txt
+            line_generator = process_txt(filename, buffer_size)
+
+        for line in line_generator:
+            line = line.lower()
+            clean_line = "".join(ch if ch.isalnum() else " " for ch in line)
+            counts.update(clean_line.split())
+
+    end = time.time()
+    print(f"Processed {len(file_list)} file(s) with buffer={buffer_size} in {end - start:.4f} sec")
+
+    # Sort: frequency desc, then alphabetically
+    sorted_counts = sorted(counts.items(), key=lambda x: (-x[1], x[0]))
+    return sorted_counts[:top_n]
+
+def plot_histogram(word_counts, title="Top 50 Words Frequency"):
+    """Plot histogram of top word counts."""
+    words, freqs = zip(*word_counts)
+    plt.figure(figsize=(12, 6))
+    plt.bar(words, freqs, color="skyblue", edgecolor="black")
+    plt.xticks(rotation=45, ha="right")
+    plt.xlabel("Words")
+    plt.ylabel("Frequency")
+    plt.title(title)
+    plt.tight_layout()
+    plt.show()
+
+# ---------------- Example Usage ----------------
+if __name__ == "__main__":
+    files = ["Copy of Nishafin.csv"]  # replace with your files
+
+    top_words = word_count_optimized(files, buffer_size=1024*1024, top_n=50)
+
+    # Print results
+    for word, count in top_words:
+        print(f"{word} : {count}")
+
+    # Visualize top 50
+    plot_histogram(top_words, title="Word Frequency (Top 50)")
